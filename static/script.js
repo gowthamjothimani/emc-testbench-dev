@@ -438,6 +438,13 @@ function confirmQC() {
         .then(res => {
             if (res.status === "success") {
                 alert("QC recorded to EEPROM: " + res.device_info.qc_status);
+                // CRITICAL: Emit socket event to update backend log_exporter with QC status
+                const qcFinalStatus = (status === "passed") ? "PASSED" : "FAILED";
+                const qcReasons = failed.concat(missing);
+                socket.emit('qc_status_update', {
+                    qc_status: qcFinalStatus,
+                    qc_fail_reasons: qcReasons
+                });
                 closeQCModal();
             } else {
                 alert("Failed to write EEPROM: " + (res.message || JSON.stringify(res)));

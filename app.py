@@ -466,6 +466,18 @@ def handle_gas_in(data):
     log_exporter.set_state("fault", "gas_power_in", status)
 
 
+# ========== QC STATUS UPDATE ==========
+@socketio.on('qc_status_update')
+def handle_qc_status_update(data):
+    """Receive QC status from frontend after confirmation and store it in log_exporter"""
+    qc_status = data.get('qc_status', 'FAILED')
+    qc_fail_reasons = data.get('qc_fail_reasons', [])
+    
+    # Update log_exporter with the QC decision
+    log_exporter.set_qc_status(qc_status, qc_fail_reasons)
+    print(f"QC Status Updated: {qc_status} - Reasons: {qc_fail_reasons}")
+
+
 # ========== QC STATUS ==============
 @app.route('/qc_status', methods=['POST'])
 def qc_status():
