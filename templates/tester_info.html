@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        :root {
+            --bg-dark: #0b0e14;
+            --card-bg: #1c2128; /* Slightly lighter to contrast with dark logo */
+            --border: #30363d;
+            --text-main: #adbac7;
+            --text-dim: #768390;
+            --neon-green: #3fb950;
+            --neon-blue: #539bf5;
+            --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: var(--text-main);
+        }
+
+        .form-container {
+            background-color: var(--card-bg);
+            padding: 0; /* Remove padding to handle logo header */
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+            width: 100%;
+            max-width: 450px;
+            overflow: hidden;
+        }
+
+        .header-logo-section {
+            background-color: #ffffff; /* White background to make dark logo visible */
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 4px solid var(--neon-blue);
+        }
+
+        .logo-placeholder {
+            max-width: 100px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+        .app-name {
+            font-family: var(--font-mono);
+            color: #1c2128; /* Dark text to match logo style on white background */
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-size: 1.2rem;
+            margin: 0;
+        }
+
+        .form-content {
+            padding: 30px 40px 40px 40px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #d3d3d3;
+
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            background-color: #0d1117;
+            color: var(--neon-green);
+            font-family: var(--font-mono);
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 8px rgba(83, 155, 245, 0.3);
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--neon-green);
+            color: #000;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(63, 185, 80, 0.4);
+            margin-top: 10px;
+        }
+
+        button:hover {
+            filter: brightness(1.1);
+            box-shadow: 0 0 25px rgba(63, 185, 80, 0.6);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="form-container">
+        <div class="header-logo-section">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="EMC LOGO" class="logo-placeholder">
+            <h2 class="app-name">EMC TEST BENCH APP</h2>
+        </div>
+
+        <div class="form-content">
+            <form method="POST" action="/submittestinfo">
+                <div class="input-group">
+                    <label for="tester_name">Tester ID</label>
+                    <input list="tester-names" type="text" id="testername" name="testername" required placeholder="Select operator">
+                    <datalist id="tester-names">
+                        <option value="Gowtham">
+                        <option value="Aravind">
+                        <option value="Suraj">
+                        <option value="Sebastiaan">
+                        <option value="Michal">
+                        <option value="Hari">
+                        <option value="Nithyanandham">
+                    </datalist>
+                </div>
+
+                <div class="input-group">
+                    <label for="modelnumber">Hardware Model</label>
+                    <input list="model-numbers" type="text" id="modelnumber" name="modelnumber" required placeholder="Select model number">
+                    <datalist id="model-numbers">
+                        <option value="ACU-G6.2.0">
+                        <option value="ACU-G6.3.0">
+                        <option value="SPM-G7.0.0">
+                        <option value="SBU-G7.0.0">
+                        <option value="SAU-G7.0.0">
+                    </datalist>
+                </div>
+
+                <div class="input-group">
+                    <label for="projectdetail">Project ID</label>
+                    <input list="project-details" type="text" id="projectdetail" name="projectdetail" required placeholder="Select project">
+                    <datalist id="project-details">
+                        <option value="Sentry Safety - HS25001">
+                        <option value="Project 2">
+                        <option value="Project 3">
+                        <option value="Project 4">
+                    </datalist>
+                </div>
+
+                <div class="input-group">
+                    <label for="serialnumber">PCB Serial Number</label>
+                    <input type="text" id="serialnumber" name="serialnumber" required placeholder="Scan or type Serial No.">
+                </div>
+
+                <button type="submit">Initialize Test</button>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>

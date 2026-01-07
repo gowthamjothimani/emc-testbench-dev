@@ -1,0 +1,48 @@
+{
+  "test_details": {
+    "testername": "Mazin",
+    "pcbserial": "ACU031225RD3",
+    "modelnumber": "ACU-G6.2.2",    
+    "projectdetail": "RNDIN"
+  },    
+    "system-check": {
+        "cpu-usage": 3.0,
+        "temperature": null,
+        "humidity": null,
+        "timestamp": "2025-12-19 09:24:19"
+    },
+    "board-inspection-status": {
+    "visual": "yes",                            
+    "electrical": "yes"
+    },
+    "gas-status": {
+        "gas-type": "Drager X-Zone",
+        "sensor-status": "working"
+    },
+    "efuse-turn-on-status": {
+        "efuse_gas_on": "working",
+        "efuse_badge_on": "working",
+        "efuse_alarm_on": "working"
+    },
+    "efuse-turn-off-status": {
+        "efuse_gas_off": "working",
+        "efuse_badge_off": "working",
+        "efuse_alarm_off": "working"
+    },
+    "card-reader-status": {
+        "in-reader": "working",
+        "out-reader": "working"
+    },  
+    "relay-status": {
+        "lamp_badge_on": "working",
+        "lamp_badge_off": "working",
+        "lamp_alarm_red_on": "working",
+        "lamp_alarm_red_off": "working",
+        "lamp_alarm_green_on": "working",
+        "lamp_alarm_green_off": "working"
+    },
+    "alarm-status": {
+        "alarm_sound_on": "working",
+        "alarm_sound_off": "working"
+    }
+}
