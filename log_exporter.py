@@ -101,7 +101,7 @@ class LogExporter:
                 "humidity": self.env_data["humidity"],
                 "timestamp": time.strftime('%Y-%m-%d %H:%M:%S')
             },
-            "board-inspection-status": self.board_inspection, 
+            "board-inspection-status": self.board_inspection,
             "gas-status": {
                 "gas-type": self.sensor_type,
                 "sensor-status": self.sensor_status
@@ -120,12 +120,12 @@ class LogExporter:
         data = {
             "test_details": self.test_details,
             "system-check": {
-                "cpu-usage": self.env_data["cpu"],  
+                "cpu-usage": self.env_data["cpu"],
                 "temperature": self.env_data["temperature"],
                 "humidity": self.env_data["humidity"],
                 "timestamp": time.strftime('%Y-%m-%d %H:%M:%S')
-            }, 
-            "board-inspection-status": self.board_inspection, 
+            },
+            "board-inspection-status": self.board_inspection,
             "gas-status": {
                 "gas-type": self.sensor_type,
                 "sensor-status": self.sensor_status

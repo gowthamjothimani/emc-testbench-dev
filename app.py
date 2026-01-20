@@ -80,7 +80,7 @@ def monitor_fuse_and_gas_n():
             socketio.emit('badge_fault', {'status': badge_fault, 'color': 'lightgreen'})
             socketio.emit('alarm_fault', {'status': alarm_fault, 'color': 'lightgreen'})
             socketio.emit('gas_in', {'status': gas_in, 'color': 'lightgreen'})
-            
+
             # Also log these states to the log_exporter for tracking
             log_exporter.set_state("fault", "gas_fault", gas_fault)
             log_exporter.set_state("fault", "badge_fault", badge_fault)
@@ -472,7 +472,7 @@ def handle_qc_status_update(data):
     """Receive QC status from frontend after confirmation and store it in log_exporter"""
     qc_status = data.get('qc_status', 'FAILED')
     qc_fail_reasons = data.get('qc_fail_reasons', [])
-    
+
     # Update log_exporter with the QC decision
     log_exporter.set_qc_status(qc_status, qc_fail_reasons)
     print(f"QC Status Updated: {qc_status} - Reasons: {qc_fail_reasons}")

@@ -606,7 +606,7 @@ function showTab(tabId, btnElement) {
     // 1. Hide all tabs
     const tabs = document.querySelectorAll('.tab');
     tabs.forEach(tab => tab.classList.remove('active'));
-    
+
     // 2. Show the specific tab
     const targetTab = document.getElementById(tabId);
     if (targetTab) targetTab.classList.add('active');
@@ -616,4 +616,3 @@ function showTab(tabId, btnElement) {
     buttons.forEach(btn => btn.classList.remove('active-tab'));
     if (btnElement) btnElement.classList.add('active-tab');
 }
-
