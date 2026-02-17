@@ -1,27 +1,44 @@
 import time
-import board
-import busio
-from datetime import datetime
+from smbus2 import SMBus, i2c_msg
 
-i2c = busio.I2C(board.SCL, board.SDA)
+I2C_BUS = 2
 HDC302x_ADDRESS = 0x47
 
+
 def HDC302xReset():
-    soft_reset_cmd = bytes([0x30, 0xA2])
-    i2c.writeto(HDC302x_ADDRESS, soft_reset_cmd)
-    time.sleep(0.04)  
+    try:
+        with SMBus(I2C_BUS) as bus:
+            write = i2c_msg.write(HDC302x_ADDRESS, [0x30, 0xA2])
+            bus.i2c_rdwr(write)
+            time.sleep(0.04)
+    except Exception as e:
+        print("Reset Error:", e)
+
 
 def HDC302xRead():
-    trigger_cmd = bytes([0x24, 0x00])
-    i2c.writeto(HDC302x_ADDRESS, trigger_cmd)
-    time.sleep(0.040)  
-    data = bytearray(6)
-    i2c.readfrom_into(HDC302x_ADDRESS, data)
+    try:
+        with SMBus(I2C_BUS) as bus:
 
-    temp_raw = (data[0] << 8) | data[1]
-    hum_raw  = (data[3] << 8) | data[4]
+            # Trigger measurement
+            write = i2c_msg.write(HDC302x_ADDRESS, [0x24, 0x00])
+            bus.i2c_rdwr(write)
 
-    temperature_c = ((temp_raw / 65535.0) * 175.0) - 45.0
-    humidity = (hum_raw / 65535.0) * 100.0
+            time.sleep(0.04)
 
-    return temperature_c, humidity
+            # Read 6 bytes (raw read, no register)
+            read = i2c_msg.read(HDC302x_ADDRESS, 6)
+            bus.i2c_rdwr(read)
+
+            data = list(read)
+
+            temp_raw = (data[0] << 8) | data[1]
+            hum_raw  = (data[3] << 8) | data[4]
+
+            temperature_c = ((temp_raw / 65535.0) * 175.0) - 45.0
+            humidity = (hum_raw / 65535.0) * 100.0
+
+            return temperature_c, humidity
+
+    except Exception as e:
+        print("Read Error:", e)
+        return None, None
