@@ -27,6 +27,14 @@ class LogExporter:
             "alarm_fault": "--",
             "gas_power_in": "--"
         }
+        self.indicator_status = {
+            "rgb_led": {
+                "red": "not tested",
+                "green": "not tested",
+                "blue": "not tested"
+            },
+            "pushbutton": "error"   # default = not pressed → error
+        }
 
     def update_sensor_status(self, sensor, last_reading):
         if sensor:
@@ -93,6 +101,12 @@ class LogExporter:
             self.board_inspection["electrical"] = board_log.get("electrical", "no")
             print("Board inspection saved:", self.board_inspection)
 
+    def set_indicator(self, key, value, color=None):
+        if key == "pushbutton":
+            self.indicator_status["pushbutton"] = value
+        elif key == "rgb_led" and color:
+            self.indicator_status["rgb_led"][color] = value
+
     def get_last_log(self):
         return {
             "system-check": {
@@ -112,6 +126,7 @@ class LogExporter:
             "card-reader-status": self.card_reader_data,
             "relay-status": self.relay_states,
             "alarm-status": self.alarm_states,
+            "indicator": self.indicator_status,
              "qc_status": self.qc_status,
              "qc_fail_reasons": self.qc_fail_reasons
         }
@@ -136,7 +151,8 @@ class LogExporter:
             "card-reader-status": self.card_reader_data,
             "relay-status": self.relay_states,
             "alarm-status": self.alarm_states,
+            "indicator": self.indicator_status,
             "qc_status": self.qc_status,
-           "qc_fail_reasons": self.qc_fail_reasons
-        }
+           "qc_fail_reasons": self.qc_fail_reasons       
+         }
         self.mqtt_client.publish_data(data)

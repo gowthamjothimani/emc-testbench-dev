@@ -282,7 +282,7 @@ function openQCModal() {
         const cpu = logData["system-check"]["cpu-usage"] ?? "--";
         const temp = envData.temperature ?? logData["system-check"]["temperature"] ?? "--";
         const hum  = envData.humidity ?? logData["system-check"]["humidity"] ?? "--";
-
+        
         const items = [];
 
         // Required checks - align with your list
@@ -314,6 +314,19 @@ function openQCModal() {
         const outReader = (logData["card-reader-status"] && logData["card-reader-status"]["out-reader"]) || "--";
         items.push({ key: "card_in", label: `Card IN Reader: ${inReader}`, ok: inReader && inReader !== "--" });
         items.push({ key: "card_out", label: `Card OUT Reader: ${outReader}`, ok: outReader && outReader !== "--" });
+
+        //Indiciators - RGB + Pushbutton
+        const indicator = logData["indicator"] || {};
+        const rgb = indicator.rgb_led || {};
+        items.push({ key:"rgb_red", label:`RGB Red: ${rgb.red}`, ok: rgb.red === "working" });
+        items.push({ key:"rgb_green", label:`RGB Green: ${rgb.green}`, ok: rgb.green === "working" });
+        items.push({ key:"rgb_blue", label:`RGB Blue: ${rgb.blue}`, ok: rgb.blue === "working" });
+
+        items.push({
+            key:"pushbutton",
+            label:`Pushbutton: ${indicator.pushbutton}`,
+            ok: indicator.pushbutton === "working"
+        });
 
         // Relay & Alarm states (lamp on/off)
         const relays = logData["relay-status"] || {};
@@ -603,16 +616,88 @@ function saveBoardInspection() {
 }
 
 function showTab(tabId, btnElement) {
-    // 1. Hide all tabs
     const tabs = document.querySelectorAll('.tab');
     tabs.forEach(tab => tab.classList.remove('active'));
 
-    // 2. Show the specific tab
     const targetTab = document.getElementById(tabId);
     if (targetTab) targetTab.classList.add('active');
 
-    // 3. Update Nav UI - Fix: changed from '.tab-link' to '.tab-button'
     const buttons = document.querySelectorAll('.tab-button');
     buttons.forEach(btn => btn.classList.remove('active-tab'));
     if (btnElement) btnElement.classList.add('active-tab');
+}
+
+function triggerRGB(color) {
+    socket.emit("test_rgb_led", { color: color });
+    setTimeout(() => {
+        let result = confirm(`Is ${color.toUpperCase()} LED working?`);
+        let status = result ? "working" : "error";
+        socket.emit("rgb_result", { color: color, status: status });
+    }, 500);
+}
+
+socket.on("rgb_status", function(data) {
+    ["red","green","blue"].forEach(c => {
+        document.getElementById("led_" + c).style.backgroundColor = "#222";
+    });
+
+    document.getElementById("led_" + data.color).style.backgroundColor = data.color;
+});
+
+socket.on("button_status", function(data) {
+    const el = document.getElementById("buttonStatus");
+
+    if (data.status === "working") {
+        el.textContent = "PRESSED";
+        el.style.backgroundColor = "lightgreen";
+    }
+});
+
+
+let rgbSequence = ["red", "green", "blue"];
+let currentStep = 0;
+
+function startRGBSequence() {
+    currentStep = 0;
+    runNextRGB();
+}
+
+function runNextRGB() {
+    if (currentStep >= rgbSequence.length) {
+        alert("✅ RGB Test Completed");
+        return;
+    }
+
+    let color = rgbSequence[currentStep];
+
+    // Trigger backend
+    socket.emit("test_rgb_led", { color: color });
+
+    // Wait for LED to stabilize
+    setTimeout(() => {
+        let confirmMsg = `Is ${color.toUpperCase()} LED working?\n\n(Note: Color mapping is hardware dependent)`;
+        let result = confirm(confirmMsg);
+
+        let status = result ? "working" : "error";
+
+        // Send result to backend
+        socket.emit("rgb_result", {
+            color: color,
+            status: status
+        });
+
+        currentStep++;
+        runNextRGB();
+
+    }, 1000);  // delay between steps
+}
+
+let rgbRunning = false;
+
+function startRGBSequence() {
+    if (rgbRunning) return;
+    rgbRunning = true;
+
+    currentStep = 0;
+    runNextRGB();
 }

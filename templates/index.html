@@ -26,10 +26,11 @@
 
     <nav class="action-bar">
         <div class="nav-links">
+            <button class="tab-button" onclick="showTab('board-tab', this)">INSPECTION</button>
             <button class="tab-button active-tab" onclick="showTab('gasTab', this)">GAS UNIT</button>
             <button class="tab-button" onclick="showTab('cardTab', this)">BADGE UNIT</button>
             <button class="tab-button" onclick="showTab('alarmTab', this)">ALARM UNIT</button>
-            <button class="tab-button" onclick="showTab('board-tab', this)">INSPECTION</button>
+            <button class="tab-button" onclick="showTab('indicatorTab', this)">Indicator</button>
         </div>
         <div class="master-controls">
             <button class="dashboard-button btn-green" id="startTestBtn" onclick="startTest()">▶ START TEST</button>
@@ -130,6 +131,36 @@
                 <button class="dashboard-button btn-green" onclick="saveBoardInspection()">COMMIT INSPECTION</button>
             </div>
         </div>
+        <div id="indicatorTab" class="tab">
+    <div class="grid-layout">
+
+        <!-- RGB LED -->
+        <div class="control-card">
+            <h3>RGB LED Test</h3>
+
+            <div style="display:flex; gap:15px; margin-bottom:15px;">
+                <div id="led_red" class="status-box">R</div>
+                <div id="led_green" class="status-box">G</div>
+                <div id="led_blue" class="status-box">B</div>
+            </div>
+
+            <div class="btn-grid">
+              <button class="dashboard-button btn-blue" onclick="startRGBSequence()">
+            Start RGB Auto Test
+        </button>
+                    </div>
+        </div>
+
+        <!-- Pushbutton -->
+        <div class="control-card">
+            <h3>Pushbutton Test</h3>
+            <p>Press the physical button</p>
+
+            <div id="buttonStatus" class="status-box">WAITING</div>
+        </div>
+
+    </div>
+</div>
     </main>
 
     <div id="mqttConfigModal" class="modal">
