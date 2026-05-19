@@ -13,10 +13,21 @@ _LEDOUT = 0x08
 class PCA9632:
     def __init__(self, i2c_bus: int = 2, address: int = 0x62):
         self.address = address
-        self.bus = smbus2.SMBus(i2c_bus)
-        self._init_device()
+        self.available = False
+        self.bus = None
+
+        try:
+            self.bus = smbus2.SMBus(i2c_bus)
+            self._init_device()
+            self.available = True
+        except (OSError, IOError) as exc:
+            # Device absent or I2C bus unavailable; keep app running.
+            print(f"PCA9632 not available, continuing without RGB device: {exc}")
+            self.bus = None
 
     def _write(self, reg: int, val: int) -> None:
+        if not self.available or self.bus is None:
+            return
         self.bus.write_byte_data(self.address, reg, val)
 
     def _init_device(self) -> None:
