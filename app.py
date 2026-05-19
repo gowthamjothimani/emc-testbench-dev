@@ -16,6 +16,8 @@ from log_exporter import LogExporter
 from sensor_reader import get_temp_hum
 from threading import Thread
 from heartbeat import HeartbeatPublisher
+from pca9632 import PCA9632
+import Adafruit_BBIO.GPIO as GPIO
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
@@ -28,6 +30,11 @@ tester_info_submitted = False
 fuse_check_running = True
 log_exporter = LogExporter(controller, mqtt_client)
 card_reader = CardReader(socketio, log_exporter)
+rgb = PCA9632()
+BUTTON_PIN = "P8_10"
+GPIO.setup(BUTTON_PIN, GPIO.IN)
+button_press_count = 0
+button_working_recorded = False
 
 
 # ========== GAS SENSOR CONFIGURATION ==========
@@ -135,7 +142,36 @@ def _clear_eeprom_range(start_addr, end_addr, block_size=128):
         eeprom.write_protect(False)
         addr += write_len
 
+def monitor_button():
+    global button_press_count, button_working_recorded
+    last_pressed = False
 
+    while True:
+        pressed = not GPIO.input(BUTTON_PIN)
+
+        if pressed and not last_pressed:
+            button_press_count += 1
+            if button_press_count >= 2:
+                button_working_recorded = True
+                log_exporter.set_indicator("pushbutton", "working")
+            else:
+                log_exporter.set_indicator("pushbutton", "error")
+
+        if not pressed and last_pressed and not button_working_recorded:
+            log_exporter.set_indicator("pushbutton", "error")
+
+        if pressed:
+            status = "working" if button_working_recorded else "error"
+            label = f"PRESSED ({button_press_count}/2)"
+            color = "lightgreen" if button_working_recorded else "lightcoral"
+        else:
+            status = "working" if button_working_recorded else "error"
+            label = "RELEASED"
+            color = "lightgreen" if button_working_recorded else "lightcoral"
+
+        socketio.emit("button_status", {"status": status, "label": label, "color": color})
+        last_pressed = pressed
+        time.sleep(0.2)
 
 # ========== TEMP & HUM SENSOR DATA =========
 @app.route('/read_sensors')
@@ -211,7 +247,7 @@ def write_eeprom_full():
 
         # EEPROM region for combined data
         EEPROM_START = 0x0200
-        EEPROM_END   = 0x0900
+        EEPROM_END   = 0x0C00
         EEPROM_SIZE  = EEPROM_END - EEPROM_START
 
         # ------------- CLEAR EEPROM BLOCK -------------
@@ -292,6 +328,30 @@ def stop_all_tests():
     global gas_test_running
     gas_test_running = False
     card_reader.stop_card_test()
+
+# ========== INDICATOR TESTS ==========
+@socketio.on('test_rgb_led')
+def test_rgb_led(data):
+    color = data.get("color")
+
+    try:
+        if color == "red":
+            rgb.blue()   
+        elif color == "green":
+            rgb.red()    
+        elif color == "blue":
+            rgb.green()  
+
+        socketio.emit("rgb_status", {"color": color})
+
+    except Exception as e:
+        print("RGB Error:", e)
+
+@socketio.on('rgb_result')
+def rgb_result(data):
+    color = data.get("color")
+    status = data.get("status") 
+    log_exporter.set_indicator("rgb_led", status, color)
 
 
 # ========== EMC BOARD CONTROL ==========
@@ -386,8 +446,7 @@ def save_board_inspection():
             "status": "error",
             "message": f"Failed to save board inspection log: {e}"
         })
-
-
+   
 # ========== MQTT CONFIGURATION ==========
 @app.route('/get_mqtt_config', methods=['GET'])
 def get_mqtt_config():
@@ -502,7 +561,7 @@ def qc_status():
 def device_info():
     try:
         EEPROM_START = 0x0200
-        EEPROM_END   = 0x0900
+        EEPROM_END   = 0x0C00
         EEPROM_SIZE  = EEPROM_END - EEPROM_START
 
         raw = eeprom.read_eeprom(EEPROM_START, EEPROM_SIZE)
@@ -544,6 +603,7 @@ def get_last_log():
 def start_monitoring():
     threading.Thread(target=monitor_fuse_and_gas_n, daemon=True).start()
     threading.Thread(target=system_status, daemon=True).start()
+    threading.Thread(target=monitor_button, daemon=True).start()
 
 if __name__ == '__main__':
     start_monitoring()

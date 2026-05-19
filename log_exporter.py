@@ -27,6 +27,15 @@ class LogExporter:
             "alarm_fault": "--",
             "gas_power_in": "--"
         }
+        self.indicator_status = {
+            "rgb_led": {
+                "red": "not tested",
+                "green": "not tested",
+                "blue": "not tested"
+            },
+            "rgb_led_status": "error",
+            "pushbutton": "error"   # default = not pressed → error
+        }
 
     def update_sensor_status(self, sensor, last_reading):
         if sensor:
@@ -65,6 +74,13 @@ class LogExporter:
             if key in self.efuse_fault_states:
                 self.efuse_fault_states[key] = value
 
+    def _update_rgb_led_status(self):
+        rgb = self.indicator_status["rgb_led"]
+        if all(rgb.get(color) == "working" for color in ["red", "green", "blue"]):
+            self.indicator_status["rgb_led_status"] = "working"
+        else:
+            self.indicator_status["rgb_led_status"] = "error"
+
     def set_card_data(self, in_reader, out_reader):
         self.card_reader_data["in-reader"] = in_reader
         self.card_reader_data["out-reader"] = out_reader
@@ -93,6 +109,13 @@ class LogExporter:
             self.board_inspection["electrical"] = board_log.get("electrical", "no")
             print("Board inspection saved:", self.board_inspection)
 
+    def set_indicator(self, key, value, color=None):
+        if key == "pushbutton":
+            self.indicator_status["pushbutton"] = value
+        elif key == "rgb_led" and color:
+            self.indicator_status["rgb_led"][color] = value
+            self._update_rgb_led_status()
+
     def get_last_log(self):
         return {
             "system-check": {
@@ -112,6 +135,7 @@ class LogExporter:
             "card-reader-status": self.card_reader_data,
             "relay-status": self.relay_states,
             "alarm-status": self.alarm_states,
+            "indicator": self.indicator_status,
              "qc_status": self.qc_status,
              "qc_fail_reasons": self.qc_fail_reasons
         }
@@ -136,7 +160,8 @@ class LogExporter:
             "card-reader-status": self.card_reader_data,
             "relay-status": self.relay_states,
             "alarm-status": self.alarm_states,
+            "indicator": self.indicator_status,
             "qc_status": self.qc_status,
-           "qc_fail_reasons": self.qc_fail_reasons
-        }
+           "qc_fail_reasons": self.qc_fail_reasons       
+         }
         self.mqtt_client.publish_data(data)
