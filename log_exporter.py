@@ -33,6 +33,7 @@ class LogExporter:
                 "green": "not tested",
                 "blue": "not tested"
             },
+            "rgb_led_status": "error",
             "pushbutton": "error"   # default = not pressed → error
         }
 
@@ -73,6 +74,13 @@ class LogExporter:
             if key in self.efuse_fault_states:
                 self.efuse_fault_states[key] = value
 
+    def _update_rgb_led_status(self):
+        rgb = self.indicator_status["rgb_led"]
+        if all(rgb.get(color) == "working" for color in ["red", "green", "blue"]):
+            self.indicator_status["rgb_led_status"] = "working"
+        else:
+            self.indicator_status["rgb_led_status"] = "error"
+
     def set_card_data(self, in_reader, out_reader):
         self.card_reader_data["in-reader"] = in_reader
         self.card_reader_data["out-reader"] = out_reader
@@ -106,6 +114,7 @@ class LogExporter:
             self.indicator_status["pushbutton"] = value
         elif key == "rgb_led" and color:
             self.indicator_status["rgb_led"][color] = value
+            self._update_rgb_led_status()
 
     def get_last_log(self):
         return {

@@ -321,6 +321,7 @@ function openQCModal() {
         items.push({ key:"rgb_red", label:`RGB Red: ${rgb.red}`, ok: rgb.red === "working" });
         items.push({ key:"rgb_green", label:`RGB Green: ${rgb.green}`, ok: rgb.green === "working" });
         items.push({ key:"rgb_blue", label:`RGB Blue: ${rgb.blue}`, ok: rgb.blue === "working" });
+        items.push({ key:"rgb_led_status", label:`RGB LED: ${indicator.rgb_led_status || "error"}`, ok: indicator.rgb_led_status === "working" });
 
         items.push({
             key:"pushbutton",
@@ -646,11 +647,8 @@ socket.on("rgb_status", function(data) {
 
 socket.on("button_status", function(data) {
     const el = document.getElementById("buttonStatus");
-
-    if (data.status === "working") {
-        el.textContent = "PRESSED";
-        el.style.backgroundColor = "lightgreen";
-    }
+    el.textContent = data.label || (data.status === "working" ? "PRESSED" : "RELEASED");
+    el.style.backgroundColor = data.color || (data.status === "working" ? "lightgreen" : "lightcoral");
 });
 
 

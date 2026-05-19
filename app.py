@@ -31,8 +31,10 @@ fuse_check_running = True
 log_exporter = LogExporter(controller, mqtt_client)
 card_reader = CardReader(socketio, log_exporter)
 rgb = PCA9632()
-BUTTON_PIN = "P9_12"
+BUTTON_PIN = "P8_10"
 GPIO.setup(BUTTON_PIN, GPIO.IN)
+button_press_count = 0
+button_working_recorded = False
 
 
 # ========== GAS SENSOR CONFIGURATION ==========
@@ -141,10 +143,34 @@ def _clear_eeprom_range(start_addr, end_addr, block_size=128):
         addr += write_len
 
 def monitor_button():
+    global button_press_count, button_working_recorded
+    last_pressed = False
+
     while True:
-        if GPIO.input(BUTTON_PIN):
-            socketio.emit("button_status", {"status": "working"})
-            log_exporter.set_indicator("pushbutton", "working")
+        pressed = not GPIO.input(BUTTON_PIN)
+
+        if pressed and not last_pressed:
+            button_press_count += 1
+            if button_press_count >= 2:
+                button_working_recorded = True
+                log_exporter.set_indicator("pushbutton", "working")
+            else:
+                log_exporter.set_indicator("pushbutton", "error")
+
+        if not pressed and last_pressed and not button_working_recorded:
+            log_exporter.set_indicator("pushbutton", "error")
+
+        if pressed:
+            status = "working" if button_working_recorded else "error"
+            label = f"PRESSED ({button_press_count}/2)"
+            color = "lightgreen" if button_working_recorded else "lightcoral"
+        else:
+            status = "working" if button_working_recorded else "error"
+            label = "RELEASED"
+            color = "lightgreen" if button_working_recorded else "lightcoral"
+
+        socketio.emit("button_status", {"status": status, "label": label, "color": color})
+        last_pressed = pressed
         time.sleep(0.2)
 
 # ========== TEMP & HUM SENSOR DATA =========
@@ -535,7 +561,7 @@ def qc_status():
 def device_info():
     try:
         EEPROM_START = 0x0200
-        EEPROM_END   = 0x0900
+        EEPROM_END   = 0x0C00
         EEPROM_SIZE  = EEPROM_END - EEPROM_START
 
         raw = eeprom.read_eeprom(EEPROM_START, EEPROM_SIZE)
