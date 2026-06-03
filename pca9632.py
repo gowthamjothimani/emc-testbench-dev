@@ -45,7 +45,6 @@ class PCA9632:
 
     def red(self, brightness: int = 0xFF) -> None:
         self._set_channels(r=brightness, g=0x00, b=0x00)
-
     def green(self, brightness: int = 0xFF) -> None:
         self._set_channels(r=0x00, g=brightness, b=0x00)
 
